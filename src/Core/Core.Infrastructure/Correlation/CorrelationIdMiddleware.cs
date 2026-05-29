@@ -3,10 +3,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Core.Infrastructure.Correlation;
 
-/// <summary>
-/// Принимает X-Correlation-Id из входящего запроса (или генерирует новый),
-/// кладёт его в HttpContext.Items и в логирующий scope, выставляет в response-заголовке.
-/// </summary>
 public class CorrelationIdMiddleware
 {
   private readonly RequestDelegate _next;

@@ -1,8 +1,8 @@
 <Solution>
   <Folder Name="/src/" />
-  <Folder Name="/src/BuildingBlocks/">
-    <Project Path="src/BuildingBlocks/Core.Domain/Core.Domain.csproj" />
-    <Project Path="src/BuildingBlocks/Core.Infrastructure/Core.Infrastructure.csproj" />
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/Core.Domain/Core.Domain.csproj" />
+    <Project Path="src/Core/Core.Infrastructure/Core.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Categories/">
     <Project Path="src/Categories/Categories.API/Categories.API.csproj" />

@@ -30,7 +30,7 @@ public abstract class BaseEntity
   {
     if (obj is not BaseEntity other)
       return false;
-    if (GetType() != other.GetType()) return false; // строгое сравнение типа
+    if (GetType() != other.GetType()) return false;
     return Id == other.Id;
   }
 

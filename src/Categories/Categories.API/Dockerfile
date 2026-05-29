@@ -1,8 +1,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
 
-COPY ["src/BuildingBlocks/Core.Domain/Core.Domain.csproj",                           "src/BuildingBlocks/Core.Domain/"]
-COPY ["src/BuildingBlocks/Core.Infrastructure/Core.Infrastructure.csproj",           "src/BuildingBlocks/Core.Infrastructure/"]
+COPY ["src/Core/Core.Domain/Core.Domain.csproj",                           "src/Core/Core.Domain/"]
+COPY ["src/Core/Core.Infrastructure/Core.Infrastructure.csproj",           "src/Core/Core.Infrastructure/"]
 COPY ["src/Categories/Categories.Domain/Categories.Domain.csproj",                   "src/Categories/Categories.Domain/"]
 COPY ["src/Categories/Categories.Application/Categories.Application.csproj",         "src/Categories/Categories.Application/"]
 COPY ["src/Categories/Categories.Infrastructure/Categories.Infrastructure.csproj",   "src/Categories/Categories.Infrastructure/"]

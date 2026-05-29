@@ -2,10 +2,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace Core.Infrastructure.Correlation;
 
-/// <summary>
-/// DelegatingHandler для исходящих HTTP-вызовов (Refit/HttpClient).
-/// Берёт текущий CorrelationId из HttpContext и прокидывает его в X-Correlation-Id.
-/// </summary>
 public class CorrelationIdHandler : DelegatingHandler
 {
   private readonly IHttpContextAccessor _httpContextAccessor;

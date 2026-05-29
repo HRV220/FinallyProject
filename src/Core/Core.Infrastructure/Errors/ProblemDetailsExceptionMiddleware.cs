@@ -7,10 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Core.Infrastructure.Errors;
 
-/// <summary>
-/// Любые необработанные исключения превращает в RFC 7807 ProblemDetails,
-/// дополняя их CorrelationId. Полные стек-трейсы возвращаются только в Development.
-/// </summary>
+
 public class ProblemDetailsExceptionMiddleware
 {
   private static readonly JsonSerializerOptions JsonOptions = new()

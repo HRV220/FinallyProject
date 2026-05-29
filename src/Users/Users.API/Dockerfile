@@ -2,8 +2,8 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
 
 # csproj copy (used by docker build context = solution root)
-COPY ["src/BuildingBlocks/Core.Domain/Core.Domain.csproj",          "src/BuildingBlocks/Core.Domain/"]
-COPY ["src/BuildingBlocks/Core.Infrastructure/Core.Infrastructure.csproj", "src/BuildingBlocks/Core.Infrastructure/"]
+COPY ["src/Core/Core.Domain/Core.Domain.csproj",          "src/Core/Core.Domain/"]
+COPY ["src/Core/Core.Infrastructure/Core.Infrastructure.csproj", "src/Core/Core.Infrastructure/"]
 COPY ["src/Users/Users.Domain/Users.Domain.csproj",                 "src/Users/Users.Domain/"]
 COPY ["src/Users/Users.Application/Users.Application.csproj",       "src/Users/Users.Application/"]
 COPY ["src/Users/Users.Infrastructure/Users.Infrastructure.csproj", "src/Users/Users.Infrastructure/"]

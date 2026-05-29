@@ -1,0 +1,44 @@
+# --- Build output (must not leak into Linux containers) ---
+**/bin
+**/obj
+**/publish
+**/out
+
+# --- IDE ---
+**/.vs
+**/.vscode
+**/.idea
+**/*.user
+**/*.suo
+
+# --- Reports/docs not needed for runtime ---
+docs
+img
+report
+network_report*.docx
+FinanceTracker_Report.docx
+README.md
+task.md
+
+# --- Tools that are not part of any service ---
+tools/build_report.py
+tools/diagrams
+tools/node_modules
+tools/package.json
+tools/package-lock.json
+tools/puppeteer-config.json
+
+# --- Secrets / local env ---
+.env
+
+# --- Git/CI ---
+.git
+.gitignore
+
+# --- OS ---
+**/Thumbs.db
+**/.DS_Store
+**/desktop.ini
+
+# --- Volumes ---
+reports-data
