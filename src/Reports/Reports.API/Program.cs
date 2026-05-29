@@ -1,12 +1,9 @@
 using System.Text;
 using Core.Infrastructure;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Reports.Application.Reports.Commands.CreateReport;
 using Reports.Infrastructure;
-using Reports.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,12 +27,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-  var db = scope.ServiceProvider.GetRequiredService<ReportsDbContext>();
-  await db.Database.MigrateAsync();
-}
 
 app.UsePlatformErrorHandling();
 

@@ -1,12 +1,8 @@
 using System.Text;
 using Categories.Application.Categories.Commands.CreateCategory;
 using Categories.Infrastructure;
-using Categories.Infrastructure.Persistence;
-using Categories.Infrastructure.Persistence.Seed;
 using Core.Infrastructure;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
@@ -31,13 +27,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-  var db = scope.ServiceProvider.GetRequiredService<CategoriesDbContext>();
-  await db.Database.MigrateAsync();
-  await CategoriesSeeder.SeedAsync(db);
-}
 
 app.UsePlatformErrorHandling();
 

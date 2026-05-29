@@ -1,15 +1,10 @@
 using System.Text;
 using Core.Infrastructure;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Transactions.Application.Wallets.Commands.CreateWallet;
-using Transactions.Domain.Interfaces;
 using Transactions.Infrastructure;
-using Transactions.Infrastructure.Persistence;
-using Transactions.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,15 +27,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-  var db = scope.ServiceProvider.GetRequiredService<TransactionsDbContext>();
-  await db.Database.MigrateAsync();
-
-  var cbr = scope.ServiceProvider.GetRequiredService<ICbrCurrencyRateService>();
-  await CurrenciesSeeder.SeedAsync(db, cbr);
-}
 
 app.UsePlatformErrorHandling();
 

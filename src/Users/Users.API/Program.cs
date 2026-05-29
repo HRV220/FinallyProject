@@ -1,11 +1,7 @@
 using System.Text;
-using Users.Application.Users.Commands.RegisterUser;
 using Users.Infrastructure;
-using Users.Infrastructure.Persistence;
 using Core.Infrastructure;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
@@ -14,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddUsersModule(builder.Configuration);
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(RegisterUserCommand).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(Users.Application.Users.Commands.RegisterUser.RegisterUserCommand).Assembly));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
   options => options.TokenValidationParameters = new TokenValidationParameters
@@ -30,12 +26,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-  var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-  await db.Database.MigrateAsync();
-}
 
 app.UsePlatformErrorHandling();
 

@@ -1,30 +1,79 @@
-using Categories.Infrastructure.Persistence;
+using System;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Reports.Infrastructure.Persistence;
-using Transactions.Infrastructure.Persistence;
 using Users.Infrastructure.Persistence;
+using Categories.Infrastructure.Persistence;
+using Categories.Infrastructure.Persistence.Seed;
+using Transactions.Infrastructure.Persistence;
+using Transactions.Infrastructure.Persistence.Seed;
+using Transactions.Domain.Interfaces;
+using Transactions.Infrastructure.ExternalRates;
+using Reports.Infrastructure.Persistence;
 
 string host = Env("PGHOST", "localhost");
 string port = Env("PGPORT", "5432");
 string user = Env("PGUSER", "postgres");
 string pass = Env("PGPASSWORD", "postgres");
-string targetDb = Env("PGDATABASE", "FinanceTrackerNew");
+string targetDb = Env("PGDATABASE", "finance_tracker");
 
 string adminCs = $"Host={host};Port={port};Username={user};Password={pass};Database=postgres";
 
-Console.WriteLine($"[bootstrap] target database: {targetDb}");
-Console.WriteLine($"[bootstrap] host: {host}:{port}, user: {user}");
+Console.WriteLine($"[bootstrap] Target database: {targetDb}");
+Console.WriteLine($"[bootstrap] Host: {host}:{port}, User: {user}");
 
 await CreateDatabaseIfNotExistsAsync(adminCs, targetDb);
+
 await CreateSchemasAsync(host, port, user, pass, targetDb, new[] { "users", "categories", "transactions", "reports" });
 
-await MigrateAsync<UserDbContext>($"Host={host};Port={port};Database={targetDb};Username={user};Password={pass};Search Path=users", "users");
-await MigrateAsync<CategoriesDbContext>($"Host={host};Port={port};Database={targetDb};Username={user};Password={pass};Search Path=categories", "categories");
-await MigrateAsync<TransactionsDbContext>($"Host={host};Port={port};Database={targetDb};Username={user};Password={pass};Search Path=transactions", "transactions");
-await MigrateAsync<ReportsDbContext>($"Host={host};Port={port};Database={targetDb};Username={user};Password={pass};Search Path=reports", "reports");
+var services = new ServiceCollection();
 
-Console.WriteLine("[bootstrap] done");
+services.AddDbContext<UserDbContext>(options =>
+    options.UseNpgsql($"Host={host};Port={port};Database={targetDb};Username={user};Password={pass};Search Path=users"));
+
+services.AddDbContext<CategoriesDbContext>(options =>
+    options.UseNpgsql($"Host={host};Port={port};Database={targetDb};Username={user};Password={pass};Search Path=categories"));
+
+services.AddDbContext<TransactionsDbContext>(options =>
+    options.UseNpgsql($"Host={host};Port={port};Database={targetDb};Username={user};Password={pass};Search Path=transactions"));
+
+services.AddDbContext<ReportsDbContext>(options =>
+    options.UseNpgsql($"Host={host};Port={port};Database={targetDb};Username={user};Password={pass};Search Path=reports"));
+
+services.AddHttpClient<ICbrCurrencyRateService, CbrCurrencyRateService>();
+
+var serviceProvider = services.BuildServiceProvider();
+
+using (var scope = serviceProvider.CreateScope())
+{
+  Console.WriteLine("[bootstrap] Applying migrations for UserDbContext...");
+  var userDb = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+  await userDb.Database.MigrateAsync();
+  Console.WriteLine("[bootstrap]   ok — users schema updated.");
+
+  Console.WriteLine("[bootstrap] Applying migrations for CategoriesDbContext...");
+  var catDb = scope.ServiceProvider.GetRequiredService<CategoriesDbContext>();
+  await catDb.Database.MigrateAsync();
+  Console.WriteLine("[bootstrap] Seeding default categories...");
+  await CategoriesSeeder.SeedAsync(catDb);
+  Console.WriteLine("[bootstrap]   ok — categories schema updated.");
+
+  Console.WriteLine("[bootstrap] Applying migrations for TransactionsDbContext...");
+  var txDb = scope.ServiceProvider.GetRequiredService<TransactionsDbContext>();
+  await txDb.Database.MigrateAsync();
+  Console.WriteLine("[bootstrap] Seeding currency rates from CBR...");
+  var cbrService = scope.ServiceProvider.GetRequiredService<ICbrCurrencyRateService>();
+  await CurrenciesSeeder.SeedAsync(txDb, cbrService);
+  Console.WriteLine("[bootstrap]   ok — transactions schema updated.");
+
+  Console.WriteLine("[bootstrap] Applying migrations for ReportsDbContext...");
+  var reportDb = scope.ServiceProvider.GetRequiredService<ReportsDbContext>();
+  await reportDb.Database.MigrateAsync();
+  Console.WriteLine("[bootstrap]   ok — reports schema updated.");
+}
+
+Console.WriteLine("[bootstrap] Database bootstrapping successfully completed.");
 return 0;
 
 static string Env(string key, string fallback) => Environment.GetEnvironmentVariable(key) is { Length: > 0 } v ? v : fallback;
@@ -40,14 +89,14 @@ static async Task CreateDatabaseIfNotExistsAsync(string adminCs, string dbName)
     var exists = await check.ExecuteScalarAsync();
     if (exists != null)
     {
-      Console.WriteLine($"[bootstrap] database \"{dbName}\" already exists — skipping CREATE");
+      Console.WriteLine($"[bootstrap] Database \"{dbName}\" already exists.");
       return;
     }
   }
 
   await using var create = new NpgsqlCommand($"CREATE DATABASE \"{dbName}\" ENCODING 'UTF8'", conn);
   await create.ExecuteNonQueryAsync();
-  Console.WriteLine($"[bootstrap] database \"{dbName}\" created");
+  Console.WriteLine($"[bootstrap] Database \"{dbName}\" successfully created.");
 }
 
 static async Task CreateSchemasAsync(string host, string port, string user, string pass, string dbName, string[] schemas)
@@ -59,17 +108,6 @@ static async Task CreateSchemasAsync(string host, string port, string user, stri
   {
     await using var cmd = new NpgsqlCommand($"CREATE SCHEMA IF NOT EXISTS \"{schema}\"", conn);
     await cmd.ExecuteNonQueryAsync();
-    Console.WriteLine($"[bootstrap] schema \"{schema}\" ensured");
+    Console.WriteLine($"[bootstrap] Schema \"{schema}\" ensured.");
   }
-}
-
-static async Task MigrateAsync<TContext>(string connectionString, string schema) where TContext : DbContext
-{
-  var options = new DbContextOptionsBuilder<TContext>()
-    .UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", schema))
-    .Options;
-  await using var ctx = (TContext)Activator.CreateInstance(typeof(TContext), options)!;
-  Console.WriteLine($"[bootstrap] applying migrations: {typeof(TContext).Name} (schema={schema})");
-  await ctx.Database.MigrateAsync();
-  Console.WriteLine($"[bootstrap]   ok — {typeof(TContext).Name}");
 }
