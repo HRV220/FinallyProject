@@ -1,0 +1,12 @@
+namespace Transactions.Application.Wallets.Queries.GetWalletsByProfileId;
+
+public record GetWalletsByProfileIdResponse(
+  Guid Id,
+  Guid ProfileId,
+  string Name,
+  string? Icon,
+  int SortOrder,
+  Guid CurrencyId,
+  decimal InitialBalance,
+  string? Note,
+  bool IsArchived);

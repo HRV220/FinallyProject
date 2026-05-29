@@ -1,0 +1,31 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/Core.Domain/Core.Domain.csproj" />
+    <Project Path="src/BuildingBlocks/Core.Infrastructure/Core.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Categories/">
+    <Project Path="src/Categories/Categories.API/Categories.API.csproj" />
+    <Project Path="src/Categories/Categories.Application/Categories.Application.csproj" />
+    <Project Path="src/Categories/Categories.Domain/Categories.Domain.csproj" />
+    <Project Path="src/Categories/Categories.Infrastructure/Categories.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Reports/">
+    <Project Path="src/Reports/Reports.API/Reports.API.csproj" />
+    <Project Path="src/Reports/Reports.Application/Reports.Application.csproj" />
+    <Project Path="src/Reports/Reports.Domain/Reports.Domain.csproj" />
+    <Project Path="src/Reports/Reports.Infrastructure/Reports.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Transactions/">
+    <Project Path="src/Transactions/Transactions.API/Transactions.API.csproj" />
+    <Project Path="src/Transactions/Transactions.Application/Transactions.Application.csproj" />
+    <Project Path="src/Transactions/Transactions.Domain/Transactions.Domain.csproj" />
+    <Project Path="src/Transactions/Transactions.Infrastructure/Transactions.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Users/">
+    <Project Path="src/Users/Users.API/Users.API.csproj" />
+    <Project Path="src/Users/Users.Application/Users.Application.csproj" />
+    <Project Path="src/Users/Users.Domain/Users.Domain.csproj" />
+    <Project Path="src/Users/Users.Infrastructure/Users.Infrastructure.csproj" />
+  </Folder>
+</Solution>

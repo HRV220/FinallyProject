@@ -1,0 +1,139 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: finance_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB:       ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  users-service:
+    build:
+      context: .
+      dockerfile: src/Users/Users.API/Dockerfile
+    container_name: finance_users
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS:        http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Search Path=users"
+      Jwt__Issuer:          ${JWT_ISSUER}
+      Jwt__Audience:        ${JWT_AUDIENCE}
+      Jwt__Secret:          ${JWT_SECRET}
+      Jwt__ExpirationHours: ${JWT_EXPIRATION_HOURS}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  categories-service:
+    build:
+      context: .
+      dockerfile: src/Categories/Categories.API/Dockerfile
+    container_name: finance_categories
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS:        http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Search Path=categories"
+      Jwt__Issuer:          ${JWT_ISSUER}
+      Jwt__Audience:        ${JWT_AUDIENCE}
+      Jwt__Secret:          ${JWT_SECRET}
+      Jwt__ExpirationHours: ${JWT_EXPIRATION_HOURS}
+      UsersService__BaseUrl: http://users-service:8080
+    depends_on:
+      db:
+        condition: service_healthy
+      users-service:
+        condition: service_started
+
+  transactions-service:
+    build:
+      context: .
+      dockerfile: src/Transactions/Transactions.API/Dockerfile
+    container_name: finance_transactions
+    restart: unless-stopped
+    ports:
+      - "8083:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS:        http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Search Path=transactions"
+      Jwt__Issuer:          ${JWT_ISSUER}
+      Jwt__Audience:        ${JWT_AUDIENCE}
+      Jwt__Secret:          ${JWT_SECRET}
+      Jwt__ExpirationHours: ${JWT_EXPIRATION_HOURS}
+      UsersService__BaseUrl:      http://users-service:8080
+      CategoriesService__BaseUrl: http://categories-service:8080
+    depends_on:
+      db:
+        condition: service_healthy
+      users-service:
+        condition: service_started
+      categories-service:
+        condition: service_started
+
+  reports-service:
+    build:
+      context: .
+      dockerfile: src/Reports/Reports.API/Dockerfile
+    container_name: finance_reports
+    restart: unless-stopped
+    ports:
+      - "8084:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS:        http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Search Path=reports"
+      Jwt__Issuer:          ${JWT_ISSUER}
+      Jwt__Audience:        ${JWT_AUDIENCE}
+      Jwt__Secret:          ${JWT_SECRET}
+      Jwt__ExpirationHours: ${JWT_EXPIRATION_HOURS}
+      UsersService__BaseUrl:        http://users-service:8080
+      CategoriesService__BaseUrl:   http://categories-service:8080
+      TransactionsService__BaseUrl: http://transactions-service:8080
+      ReportStorage__Path:          /app/reports-data
+      ReportStorage__PublicBaseUrl: /api/reports/files
+    volumes:
+      - reports-data:/app/reports-data
+    depends_on:
+      db:
+        condition: service_healthy
+      users-service:
+        condition: service_started
+      categories-service:
+        condition: service_started
+      transactions-service:
+        condition: service_started
+
+  chart-service:
+    build:
+      context: ./ChartService
+      dockerfile: Dockerfile
+    container_name: finance_chart
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  reports-data:
